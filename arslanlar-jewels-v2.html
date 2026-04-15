@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arslanlar Jewels — Yaşamın En Değerli Köşesi</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/js/controls/OrbitControls.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#090806;--bg2:#111009;--bg3:#1A1710;--bg4:#221E14;
+  --gold:#C4902A;--gold-lt:#E8CC84;--gold-dk:#8B6520;--gold-pale:rgba(196,144,42,.12);
+  --text:#F0E8D8;--text2:#B8A47A;--text3:#7A6A4E;
+  --border:rgba(196,144,42,.22);--border2:rgba(196,144,42,.08);
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;overflow-x:hidden;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:24px 60px;transition:all .4s;}
+nav.scrolled{background:rgba(9,8,6,.92);backdrop-filter:blur(12px);padding:16px 60px;border-bottom:0.5px solid var(--border);}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;letter-spacing:.08em;color:var(--gold-lt);}
+.nav-logo span{color:var(--text2);font-size:11px;display:block;letter-spacing:.2em;font-family:'Outfit',sans-serif;font-weight:300;margin-top:2px;}
+.nav-links{display:flex;gap:36px;list-style:none;}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:13px;letter-spacing:.1em;transition:color .2s;}
+.nav-links a:hover{color:var(--gold-lt);}
+.nav-cta{background:transparent;border:0.5px solid var(--gold);color:var(--gold-lt);padding:10px 24px;font-family:'Outfit',sans-serif;font-size:12px;letter-spacing:.15em;cursor:pointer;transition:all .25s;}
+.nav-cta:hover{background:var(--gold);color:var(--bg);}
+
+#hero{height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:0 60px 80px;position:relative;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(160deg,#1A1408 0%,var(--bg) 60%);}
+.hero-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 70% 30%,rgba(196,144,42,.07) 0%,transparent 70%);}
+#hero3d{position:absolute;top:0;right:0;width:58%;height:100%;cursor:grab;}
+#hero3d:active{cursor:grabbing;}
+.hero-3d-hint{position:absolute;bottom:20px;right:20px;font-size:10px;letter-spacing:.2em;color:var(--text3);z-index:3;pointer-events:none;}
+.hero-overlay{position:absolute;top:0;right:0;width:58%;height:100%;background:linear-gradient(to right,var(--bg) 0%,rgba(9,8,6,.1) 50%,transparent 100%);pointer-events:none;}
+.hero-content{position:relative;z-index:2;max-width:560px;}
+.hero-label{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+.hero-label-line{width:40px;height:0.5px;background:var(--gold);}
+.hero-label span{font-size:11px;letter-spacing:.25em;color:var(--gold);font-weight:400;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(52px,7vw,88px);font-weight:300;line-height:1.0;color:var(--text);margin-bottom:8px;}
+.hero-title em{font-style:italic;color:var(--gold-lt);}
+.hero-subtitle{font-family:'Cormorant Garamond',serif;font-size:clamp(16px,2vw,22px);font-weight:300;color:var(--text2);letter-spacing:.06em;margin-bottom:40px;font-style:italic;}
+.hero-ctas{display:flex;gap:16px;flex-wrap:wrap;}
+.btn-primary{background:var(--gold);color:var(--bg);padding:14px 32px;font-size:12px;letter-spacing:.15em;font-weight:500;border:none;cursor:pointer;transition:all .25s;font-family:'Outfit',sans-serif;}
+.btn-primary:hover{background:var(--gold-lt);}
+.btn-ghost{border:0.5px solid var(--border);color:var(--text2);padding:14px 32px;font-size:12px;letter-spacing:.15em;font-weight:400;background:transparent;cursor:pointer;transition:all .25s;font-family:'Outfit',sans-serif;}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold-lt);}
+.hero-scroll{position:absolute;bottom:40px;right:60px;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text3);font-size:10px;letter-spacing:.2em;z-index:2;}
+.scroll-line{width:0.5px;height:48px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrollAnim 2s ease infinite;}
+@keyframes scrollAnim{0%{transform:scaleY(0);transform-origin:top;}50%{transform:scaleY(1);transform-origin:top;}51%{transform:scaleY(1);transform-origin:bottom;}100%{transform:scaleY(0);transform-origin:bottom;}}
+.hero-stats{display:flex;gap:48px;margin-top:48px;padding-top:40px;border-top:0.5px solid var(--border2);}
+.hstat p:first-child{font-size:28px;font-family:'Cormorant Garamond',serif;font-weight:400;color:var(--gold-lt);}
+.hstat p:last-child{font-size:11px;letter-spacing:.15em;color:var(--text3);margin-top:4px;}
+
+section{padding:100px 60px;}
+.section-label{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.section-label-line{width:32px;height:0.5px;background:var(--gold);}
+.section-label span{font-size:10px;letter-spacing:.3em;color:var(--gold);}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(32px,4vw,52px);font-weight:300;line-height:1.15;color:var(--text);}
+.section-title em{font-style:italic;color:var(--gold-lt);}
+
+/* DAİRE TİPLERİ */
+#units{background:var(--bg);}
+.units-header{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end;margin-bottom:60px;}
+.units-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
+.unit-card{background:var(--bg);overflow:hidden;}
+.unit-top{background:var(--bg3);padding:32px 28px 24px;position:relative;}
+.unit-top::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,var(--gold),transparent);}
+.unit-badge{display:inline-block;font-size:9px;letter-spacing:.25em;color:var(--gold);border:0.5px solid var(--gold-dk);padding:4px 10px;margin-bottom:16px;}
+.unit-name{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--text);line-height:1.1;margin-bottom:4px;}
+.unit-sub{font-size:12px;color:var(--text3);letter-spacing:.06em;}
+.unit-body{padding:24px 28px;}
+.plan-boxes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border2);margin-bottom:16px;}
+.plan-box{background:var(--bg4);padding:14px 10px;text-align:center;}
+.plan-box p:first-child{font-size:9px;letter-spacing:.15em;color:var(--text3);margin-bottom:6px;}
+.plan-box p:last-child{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;color:var(--gold-lt);line-height:1.1;}
+.plan-box.hl{background:rgba(196,144,42,.08);}
+.unit-total{display:flex;justify-content:space-between;align-items:baseline;padding:12px 0;border-top:0.5px solid var(--border2);}
+.unit-total span:first-child{font-size:10px;letter-spacing:.1em;color:var(--text3);}
+.unit-total span:last-child{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold-lt);font-weight:300;}
+.unit-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;}
+.unit-tag{font-size:9px;letter-spacing:.1em;color:var(--text3);border:0.5px solid var(--border);padding:4px 8px;}
+.unit-cta{width:100%;background:transparent;border:0.5px solid var(--border);color:var(--text2);padding:12px;font-family:'Outfit',sans-serif;font-size:11px;letter-spacing:.2em;cursor:pointer;transition:all .25s;margin-top:16px;}
+.unit-cta:hover{background:var(--gold);border-color:var(--gold);color:var(--bg);}
+.popular-bar{background:var(--gold);text-align:center;font-size:10px;letter-spacing:.2em;padding:7px;color:var(--bg);font-weight:500;}
+
+/* ÖDEME PLANI */
+#payment{background:var(--bg3);}
+.payment-tabs{display:flex;gap:1px;background:var(--border);margin:40px 0 0;}
+.ptab{flex:1;padding:14px;background:var(--bg2);font-size:11px;letter-spacing:.15em;color:var(--text3);cursor:pointer;text-align:center;border:none;transition:all .2s;font-family:'Outfit',sans-serif;border-bottom:2px solid transparent;}
+.ptab.active{background:var(--gold-pale);color:var(--gold-lt);border-bottom-color:var(--gold);}
+.ptab-panel{display:none;grid-template-columns:280px 1fr;gap:48px;align-items:start;padding:40px 0 0;}
+.ptab-panel.active{display:grid;}
+.pv-rows{display:flex;flex-direction:column;gap:1px;background:var(--border2);}
+.pv-row{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;background:var(--bg2);}
+.pv-row.highlight{background:var(--gold-pale);}
+.pv-label{font-size:11px;letter-spacing:.1em;color:var(--text3);}
+.pv-val{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--text);}
+.pv-val.gold{color:var(--gold-lt);font-size:26px;}
+.inst-wrap{max-height:380px;overflow-y:auto;}
+.inst-wrap::-webkit-scrollbar{width:3px;}
+.inst-wrap::-webkit-scrollbar-thumb{background:var(--gold-dk);}
+.inst-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.inst-tbl th{padding:8px 12px;text-align:left;border-bottom:0.5px solid var(--border);color:var(--text3);letter-spacing:.1em;font-weight:400;position:sticky;top:0;background:var(--bg3);}
+.inst-tbl td{padding:7px 12px;border-bottom:0.5px solid var(--border2);color:var(--text2);}
+.inst-tbl tr:nth-child(12n) td{color:var(--gold-lt);}
+
+/* FEATURES */
+#features{background:var(--bg2);}
+.features-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin-top:60px;}
+.feat{background:var(--bg2);padding:32px 24px;transition:background .25s;}
+.feat:hover{background:var(--bg3);}
+.feat-icon{width:40px;height:40px;border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+.feat-icon svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.5;}
+.feat-name{font-size:14px;color:var(--text);margin-bottom:6px;font-weight:400;}
+.feat-desc{font-size:12px;color:var(--text3);line-height:1.6;}
+
+/* LOCATION */
+#location{background:var(--bg);}
+.location-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin-top:60px;}
+.location-map{background:var(--bg3);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.location-map span{font-size:10px;letter-spacing:.2em;color:var(--text3);}
+.location-info{background:var(--bg2);padding:48px;}
+.ladv-list{display:flex;flex-direction:column;gap:16px;margin-top:32px;}
+.ladv{display:flex;gap:16px;padding-bottom:16px;border-bottom:0.5px solid var(--border2);}
+.ladv:last-child{border-bottom:none;}
+.ladv-num{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--gold-dk);line-height:1;flex-shrink:0;width:36px;}
+.ladv-text p:first-child{font-size:14px;color:var(--text);margin-bottom:3px;}
+.ladv-text p:last-child{font-size:12px;color:var(--text3);}
+
+/* CONTACT */
+#contact{background:var(--bg2);}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;margin-top:60px;}
+.contact-form{display:flex;flex-direction:column;gap:16px;}
+.cf-input{background:var(--bg3);border:0.5px solid var(--border2);color:var(--text);padding:14px 16px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:300;transition:border-color .2s;outline:none;width:100%;}
+.cf-input:focus{border-color:var(--gold);}
+.cf-input::placeholder{color:var(--text3);}
+.cf-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.cf-submit{background:var(--gold);color:var(--bg);border:none;padding:16px;font-family:'Outfit',sans-serif;font-size:12px;letter-spacing:.2em;font-weight:500;cursor:pointer;transition:background .25s;width:100%;}
+.cf-submit:hover{background:var(--gold-lt);}
+.contact-info{display:flex;flex-direction:column;gap:28px;}
+.ci-block p:first-child{font-size:10px;letter-spacing:.25em;color:var(--gold);margin-bottom:6px;}
+.ci-block p:last-child,.ci-block a{font-size:15px;color:var(--text2);text-decoration:none;font-family:'Cormorant Garamond',serif;}
+
+footer{background:var(--bg);padding:40px 60px;display:flex;align-items:center;justify-content:space-between;border-top:0.5px solid var(--border2);}
+.footer-logo{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-lt);letter-spacing:.08em;}
+.footer-copy{font-size:11px;color:var(--text3);}
+.footer-links{display:flex;gap:24px;}
+.footer-links a{font-size:11px;color:var(--text3);text-decoration:none;transition:color .2s;}
+.footer-links a:hover{color:var(--gold-lt);}
+
+.campaign-badge{position:fixed;bottom:32px;right:32px;z-index:99;background:var(--gold);color:var(--bg);padding:12px 20px;font-size:11px;letter-spacing:.15em;font-weight:500;cursor:pointer;box-shadow:0 8px 32px rgba(196,144,42,.3);}
+.campaign-badge:hover{background:var(--gold-lt);}
+
+.fade-in{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease;}
+.fade-in.visible{opacity:1;transform:none;}
+
+@media(max-width:768px){
+  nav{padding:16px 24px;}nav.scrolled{padding:12px 24px;}
+  .nav-links,.nav-cta{display:none;}
+  #hero{padding:0 24px 60px;}
+  #hero3d{width:100%;opacity:.25;}
+  .hero-overlay{width:100%;}
+  section{padding:60px 24px;}
+  .units-grid,.features-grid,.location-grid,.contact-grid{grid-template-columns:1fr;}
+  .units-header{grid-template-columns:1fr;}
+  .ptab-panel.active{grid-template-columns:1fr;}
+  .hero-stats{gap:20px;flex-wrap:wrap;}
+  footer{flex-direction:column;gap:12px;text-align:center;}
+  .campaign-badge{bottom:16px;right:16px;}
+}
+</style>
+</head>
+<body>
+
+<nav id="mainnav">
+  <div class="nav-logo">ARSLANLAR JEWELS<span>PREMİUM KONUT · ANKARA</span></div>
+  <ul class="nav-links">
+    <li><a href="#units">Daire Tipleri</a></li>
+    <li><a href="#payment">Ödeme Planı</a></li>
+    <li><a href="#features">Özellikler</a></li>
+    <li><a href="#location">Konum</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">BİLGİ AL</button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div id="hero3d"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-3d-hint">3D MODEL · SÜRÜKLE & DÖNDÜR</div>
+  <div class="hero-content fade-in">
+    <div class="hero-label"><div class="hero-label-line"></div><span>ANKARA · 2028</span></div>
+    <h1 class="hero-title">Arslanlar<br><em>Jewels</em></h1>
+    <p class="hero-subtitle">Yaşamın en değerli köşesi</p>
+    <div class="hero-ctas">
+      <button class="btn-primary" onclick="document.getElementById('units').scrollIntoView({behavior:'smooth'})">DAİRE TİPLERİ</button>
+      <button class="btn-ghost" onclick="document.getElementById('payment').scrollIntoView({behavior:'smooth'})">ÖDEME PLANI</button>
+    </div>
+    <div class="hero-stats">
+      <div class="hstat"><p>3</p><p>DAİRE TİPİ</p></div>
+      <div class="hstat"><p>%30<span style="font-size:14px">+</span></p><p>PEŞİNAT</p></div>
+      <div class="hstat"><p>36</p><p>AY SABİT</p></div>
+      <div class="hstat"><p>2028</p><p>TESLİMAT</p></div>
+    </div>
+  </div>
+  <div class="hero-scroll"><div class="scroll-line"></div><span>KAYDIRIN</span></div>
+</section>
+
+<!-- DAİRE TİPLERİ -->
+<section id="units">
+  <div class="units-header">
+    <div>
+      <div class="section-label"><div class="section-label-line"></div><span>DAİRE TİPLERİ</span></div>
+      <h2 class="section-title">Sizin için<br><em>tasarlandı</em></h2>
+    </div>
+    <p style="font-size:14px;color:var(--text2);line-height:1.85;align-self:end;">Erken rezervasyon kampanyasında <strong style="color:var(--text);font-weight:400;">36 ay sabit taksit</strong> — taksitiniz hiç değişmez. Sınırlı sayıda daire için geçerlidir.</p>
+  </div>
+  <div class="units-grid fade-in">
+
+    <!-- 1+1 LOFT -->
+    <div class="unit-card">
+      <div class="unit-top">
+        <div class="unit-badge">1+1 LOFT</div>
+        <div class="unit-name">Loft Daire</div>
+        <div class="unit-sub">Yüksek tavan · Açık plan konsepti</div>
+      </div>
+      <div class="unit-body">
+        <div class="plan-boxes">
+          <div class="plan-box hl"><p>PEŞİNAT</p><p>1.000.000 ₺</p></div>
+          <div class="plan-box"><p>AYLIK</p><p>59.000 ₺</p></div>
+          <div class="plan-box"><p>VADE</p><p>36 Ay</p></div>
+        </div>
+        <div class="unit-total">
+          <span>TOPLAM BEDEL</span>
+          <span>3.124.000 ₺</span>
+        </div>
+        <div class="unit-tags">
+          <span class="unit-tag">LOFT KONSEPTİ</span>
+          <span class="unit-tag">YÜKSEK TAVAN</span>
+          <span class="unit-tag">SABİT TAKSİT</span>
+        </div>
+        <button class="unit-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">REZERVASYON YAP →</button>
+      </div>
+    </div>
+
+    <!-- 1+1 LOFt BAHÇELİ -->
+    <div class="unit-card">
+      <div class="popular-bar">EN ÇOK TERCİH EDİLEN</div>
+      <div class="unit-top">
+        <div class="unit-badge">1+1 LOFT BAHÇELİ</div>
+        <div class="unit-name">Bahçeli Loft</div>
+        <div class="unit-sub">Özel bahçe · Zemin kat ayrıcalığı</div>
+      </div>
+      <div class="unit-body">
+        <div class="plan-boxes">
+          <div class="plan-box hl"><p>PEŞİNAT</p><p>1.250.000 ₺</p></div>
+          <div class="plan-box"><p>AYLIK</p><p>69.000 ₺</p></div>
+          <div class="plan-box"><p>VADE</p><p>36 Ay</p></div>
+        </div>
+        <div class="unit-total">
+          <span>TOPLAM BEDEL</span>
+          <span>3.734.000 ₺</span>
+        </div>
+        <div class="unit-tags">
+          <span class="unit-tag">ÖZEL BAHÇE</span>
+          <span class="unit-tag">ZEMİN KAT</span>
+          <span class="unit-tag">SABİT TAKSİT</span>
+        </div>
+        <button class="unit-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">REZERVASYON YAP →</button>
+      </div>
+    </div>
+
+    <!-- 2+1 DUBLEKS -->
+    <div class="unit-card">
+      <div class="unit-top">
+        <div class="unit-badge">2+1 DUBLEKS</div>
+        <div class="unit-name">Dubleks Daire</div>
+        <div class="unit-sub">İki katlı · Geniş aile konforu</div>
+      </div>
+      <div class="unit-body">
+        <div class="plan-boxes">
+          <div class="plan-box hl"><p>PEŞİNAT</p><p>1.500.000 ₺</p></div>
+          <div class="plan-box"><p>AYLIK</p><p>79.000 ₺</p></div>
+          <div class="plan-box"><p>VADE</p><p>36 Ay</p></div>
+        </div>
+        <div class="unit-total">
+          <span>TOPLAM BEDEL</span>
+          <span>4.344.000 ₺</span>
+        </div>
+        <div class="unit-tags">
+          <span class="unit-tag">DUBLEKS</span>
+          <span class="unit-tag">GENİŞ SALON</span>
+          <span class="unit-tag">SABİT TAKSİT</span>
+        </div>
+        <button class="unit-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">REZERVASYON YAP →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ÖDEME PLANI -->
+<section id="payment">
+  <div class="section-label"><div class="section-label-line"></div><span>ÖDEME PLANI</span></div>
+  <h2 class="section-title">36 ay sabit taksit,<br><em>sıfır faiz sürprizi</em></h2>
+  <p style="font-size:14px;color:var(--text2);margin-top:16px;line-height:1.8;">Kampanya döneminde tüm daire tiplerinde taksitiniz baştan sabitlenir. Enflasyon, kur veya faiz artışından etkilenmez.</p>
+  <div class="payment-tabs">
+    <button class="ptab active" onclick="showTab(0,this)">1+1 LOFT</button>
+    <button class="ptab" onclick="showTab(1,this)">1+1 LOFT BAHÇELİ</button>
+    <button class="ptab" onclick="showTab(2,this)">2+1 DUBLEKS</button>
+  </div>
+
+  <div class="ptab-panel active" id="tab0">
+    <div class="pv-rows">
+      <div class="pv-row"><span class="pv-label">TOPLAM BEDEL</span><span class="pv-val">3.124.000 ₺</span></div>
+      <div class="pv-row"><span class="pv-label">PEŞİNAT</span><span class="pv-val">1.000.000 ₺</span></div>
+      <div class="pv-row"><span class="pv-label">TAKSİTLİ BAKİYE</span><span class="pv-val">2.124.000 ₺</span></div>
+      <div class="pv-row"><span class="pv-label">TAKSİT ADEDİ</span><span class="pv-val">36 Ay</span></div>
+      <div class="pv-row highlight"><span class="pv-label">AYLIK SABİT TAKSİT</span><span class="pv-val gold">59.000 ₺</span></div>
+    </div>
+    <div class="inst-wrap" id="tbl0"></div>
+  </div>
+  <div class="ptab-panel" id="tab1">
+    <div class="pv-rows">
+      <div class="pv-row"><span class="pv-label">TOPLAM BEDEL</span><span class="pv-val">3.734.000 ₺</span></div>
+      <div class="pv-row"><span class="pv-label">PEŞİNAT</span><span class="pv-val">1.250.000 ₺</span></div>
+      <div class="pv-row"><span class="pv-label">TAKSİTLİ BAKİYE</span><span class="pv-val">2.484.000 ₺</span></div>
+      <div class="pv-row"><span class="pv-label">TAKSİT ADEDİ</span><span class="pv-val">36 Ay</span></div>
+      <div class="pv-row highlight"><span class="pv-label">AYLIK SABİT TAKSİT</span><span class="pv-val gold">69.000 ₺</span></div>
+    </div>
+    <div class="inst-wrap" id="tbl1"></div>
+  </div>
+  <div class="ptab-panel" id="tab2">
+    <div class="pv-rows">
+      <div class="pv-row"><span class="pv-label">TOPLAM BEDEL</span><span class="pv-val">4.344.000 ₺</span></div>
+      <div class="pv-row"><span class="pv-label">PEŞİNAT</span><span class="pv-val">1.500.000 ₺</span></div>
+      <div class="pv-row"><span class="pv-label">TAKSİTLİ BAKİYE</span><span class="pv-val">2.844.000 ₺</span></div>
+      <div class="pv-row"><span class="pv-label">TAKSİT ADEDİ</span><span class="pv-val">36 Ay</span></div>
+      <div class="pv-row highlight"><span class="pv-label">AYLIK SABİT TAKSİT</span><span class="pv-val gold">79.000 ₺</span></div>
+    </div>
+    <div class="inst-wrap" id="tbl2"></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-label"><div class="section-label-line"></div><span>SOSYAL DONATILАР</span></div>
+  <h2 class="section-title">Yaşamı zenginleştiren<br><em>detaylar</em></h2>
+  <div class="features-grid fade-in">
+    <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="1"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div class="feat-name">7/24 Güvenlik</div><div class="feat-desc">Kesintisiz kamera sistemi ve güvenlik personeli.</div></div>
+    <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M3 17c0-2.8 4-5 9-5s9 2.2 9 5"/><ellipse cx="12" cy="9" rx="4" ry="3"/></svg></div><div class="feat-name">Yüzme Havuzu</div><div class="feat-desc">Dört mevsim açık yüzme havuzu.</div></div>
+    <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div class="feat-name">Kapalı Otopark</div><div class="feat-desc">Her daireye tahsis kapalı otopark alanı.</div></div>
+    <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></div><div class="feat-name">Sosyal Tesisler</div><div class="feat-desc">Spor salonu, çocuk oyun alanı, yeşil peyzaj.</div></div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section id="location">
+  <div class="section-label"><div class="section-label-line"></div><span>KONUM</span></div>
+  <h2 class="section-title">Şehrin kalbine<br><em>komşu</em></h2>
+  <div class="location-grid fade-in">
+    <div class="location-map">
+      <svg viewBox="0 0 48 48" width="56" height="56" style="opacity:.35"><circle cx="24" cy="20" r="8" fill="none" stroke="var(--gold)" stroke-width="1.5"/><circle cx="24" cy="20" r="2.5" fill="var(--gold)"/><path d="M24 28v12" stroke="var(--gold)" stroke-width="1" opacity=".4"/></svg>
+      <span>AKYURT / BALIKHİSAR</span>
+      <span style="font-size:12px;color:var(--text2);letter-spacing:.04em;">Ankara</span>
+    </div>
+    <div class="location-info">
+      <div class="section-label"><div class="section-label-line"></div><span>KONUM AVANTAJLARI</span></div>
+      <div class="ladv-list">
+        <div class="ladv"><div class="ladv-num">01</div><div class="ladv-text"><p>Ankara Havalimanı'na 5 Dakika</p><p>Esenboğa UAH'ye en yakın konut projelerinden biri.</p></div></div>
+        <div class="ladv"><div class="ladv-num">02</div><div class="ladv-text"><p>Ankara Çevre Yoluna Kolay Erişim</p><p>Şehrin her noktasına hızlı ve konforlu ulaşım.</p></div></div>
+        <div class="ladv"><div class="ladv-num">03</div><div class="ladv-text"><p>E-90 Otoyoluna Yakın</p><p>Ankara–İstanbul bağlantı güzergahında stratejik konum.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-label"><div class="section-label-line"></div><span>İLETİŞİM</span></div>
+  <h2 class="section-title">Hayalinizin<br><em>ilk adımı</em></h2>
+  <div class="contact-grid fade-in">
+    <form class="contact-form" onsubmit="submitForm(event)">
+      <div class="cf-row">
+        <input class="cf-input" type="text" placeholder="Adınız Soyadınız" required>
+        <input class="cf-input" type="tel" placeholder="Telefon Numarası">
+      </div>
+      <input class="cf-input" type="email" placeholder="E-Posta Adresi">
+      <select class="cf-input" style="cursor:pointer;">
+        <option value="" style="background:#1A1710;">İlgilendiğiniz Daire Tipi</option>
+        <option style="background:#1A1710;">1+1 Loft — 1.000.000 ₺ peşinat / 59.000 ₺ × 36 ay</option>
+        <option style="background:#1A1710;">1+1 Loft Bahçeli — 1.250.000 ₺ peşinat / 69.000 ₺ × 36 ay</option>
+        <option style="background:#1A1710;">2+1 Dubleks — 1.500.000 ₺ peşinat / 79.000 ₺ × 36 ay</option>
+        <option style="background:#1A1710;">Bilgi almak istiyorum</option>
+      </select>
+      <textarea class="cf-input" rows="4" placeholder="Mesajınız..."></textarea>
+      <button type="submit" class="cf-submit">HEMEN BİLGİ ALIN →</button>
+    </form>
+    <div class="contact-info">
+      <div style="padding:20px;border-left:2px solid var(--gold);background:var(--gold-pale);">
+        <p style="font-size:11px;letter-spacing:.15em;color:var(--gold);margin-bottom:8px;">KAMPANYA BİLGİSİ</p>
+        <p style="font-size:13px;color:var(--text2);line-height:1.8;">Kampanya fiyatları <strong style="color:var(--text);font-weight:400;">sınırlı sayıda daire</strong> için geçerlidir. Erken rezervasyon avantajından yararlanmak için bugün başvurun.</p>
+      </div>
+      <div class="ci-block"><p>ADRES</p><p>Akyurt / Balıkhisar, Ankara</p></div>
+      <div class="ci-block"><p>TELEFON</p><a href="tel:+903120000000">+90 312 000 00 00</a></div>
+      <div class="ci-block"><p>E-POSTA</p><a href="mailto:jewels@arslanlargrup.com">jewels@arslanlargrup.com</a></div>
+      <div class="ci-block"><p>WEB</p><a href="https://arslanlargrup.com">arslanlargrup.com</a></div>
+    </div>
+  </div>
+</section>
+
+<div class="campaign-badge" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">ERKİN REZ. · 59K ₺/AY →</div>
+
+<footer>
+  <div class="footer-logo">ARSLANLAR JEWELS</div>
+  <div class="footer-copy">© 2025 Arslanlar Gayrimenkul · Tüm hakları saklıdır</div>
+  <div class="footer-links"><a href="#units">Daireler</a><a href="#payment">Ödeme</a><a href="#contact">İletişim</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll',()=>document.getElementById('mainnav').classList.toggle('scrolled',window.scrollY>60));
+
+const obs=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('visible');}),{threshold:.1});
+document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+
+// Taksit tabloları — sabit taksit değerleri
+const PLANS=[
+  {total:3124000,down:1000000,monthly:59000,count:36},
+  {total:3734000,down:1250000,monthly:69000,count:36},
+  {total:4344000,down:1500000,monthly:79000,count:36}
+];
+function buildTable(i){
+  const el=document.getElementById('tbl'+i);
+  if(el.dataset.built) return;
+  el.dataset.built='1';
+  const p=PLANS[i];
+  const now=new Date();
+  let rows='';
+  let cum=0;
+  for(let m=1;m<=p.count;m++){
+    const d=new Date(now.getFullYear(),now.getMonth()+m,1);
+    const mn=d.toLocaleDateString('tr-TR',{month:'long',year:'numeric'});
+    cum+=p.monthly;
+    const hl=m===12||m===24||m===36;
+    rows+=`<tr style="${hl?'color:var(--gold-lt)':''}"><td style="color:var(--text3);width:28px">${m}</td><td>${mn}</td><td style="text-align:right">${p.monthly.toLocaleString('tr-TR')} ₺</td><td style="text-align:right;color:var(--text3)">${(p.down+cum).toLocaleString('tr-TR')} ₺</td></tr>`;
+  }
+  el.innerHTML=`<table class="inst-tbl"><thead><tr><th>#</th><th>TARİH</th><th style="text-align:right">TAKSİT</th><th style="text-align:right">TOPLAM ÖDENEN</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+buildTable(0);
+
+function showTab(n,btn){
+  document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.ptab-panel').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab'+n).classList.add('active');
+  buildTable(n);
+}
+
+function submitForm(e){
+  e.preventDefault();
+  const btn=e.target.querySelector('.cf-submit');
+  btn.textContent='TEŞEKKÜRLER — EN KISA SÜREDE DÖNÜŞ YAPILACAK ✓';
+  btn.style.background='#2a5a2a';
+  setTimeout(()=>{btn.textContent='HEMEN BİLGİ ALIN →';btn.style.background='';},5000);
+}
+
+// THREE.JS 3D VIEWER
+(function(){
+  const container=document.getElementById('hero3d');
+  if(!container||typeof THREE==='undefined') return;
+  const w=container.clientWidth||window.innerWidth*0.58;
+  const h=container.clientHeight||window.innerHeight;
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setSize(w,h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.3;
+  container.appendChild(renderer.domElement);
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(45,w/h,1,500000);
+  const controls=new THREE.OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true;
+  controls.dampingFactor=0.07;
+  controls.autoRotate=true;
+  controls.autoRotateSpeed=0.5;
+  controls.enablePan=false;
+  controls.maxPolarAngle=Math.PI/2.1;
+  scene.add(new THREE.AmbientLight(0xffe8c0,0.7));
+  const sun=new THREE.DirectionalLight(0xfff5e0,2);
+  sun.position.set(15000,20000,10000);
+  scene.add(sun);
+  const rim=new THREE.DirectionalLight(0xc4902a,0.5);
+  rim.position.set(-10000,5000,-8000);
+  scene.add(rim);
+  const loader=new THREE.GLTFLoader();
+  loader.load('SABLON2.glb',gltf=>{
+    const model=gltf.scene;
+    const box=new THREE.Box3().setFromObject(model);
+    const center=box.getCenter(new THREE.Vector3());
+    const size=box.getSize(new THREE.Vector3());
+    model.position.sub(center);
+    const maxDim=Math.max(size.x,size.y,size.z);
+    model.traverse(child=>{
+      if(child.isMesh){
+        child.material=new THREE.MeshStandardMaterial({
+          color:0xd4a840,metalness:0.25,roughness:0.55
+        });
+      }
+    });
+    scene.add(model);
+    camera.position.set(0,maxDim*0.5,maxDim*1.5);
+    controls.minDistance=maxDim*0.3;
+    controls.maxDistance=maxDim*4;
+    controls.update();
+  },null,err=>console.warn('GLB:',err));
+  function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera);}
+  animate();
+  container.addEventListener('pointerdown',()=>controls.autoRotate=false);
+  window.addEventListener('resize',()=>{
+    const nw=container.clientWidth,nh=container.clientHeight;
+    camera.aspect=nw/nh;camera.updateProjectionMatrix();renderer.setSize(nw,nh);
+  });
+})();
+</script>
+</body>
+</html>
